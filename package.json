@@ -1,7 +1,7 @@
 {
   "name": "clinica-3a",
   "version": "1.0.0",
-  "description": "Sistema de gerenciamento de fila para Clinica 3A",
+  "description": "Sistema de gerenciamento de fila para Clínica 3A",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

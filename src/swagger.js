@@ -5,9 +5,9 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Clinica 3A - API',
+            title: 'Clínica 3A - API',
             version: '1.0.0',
-            description: 'API para gerenciamento de fila de atendimento na Clinica 3A',
+            description: 'API para gerenciamento de fila de atendimento na Clínica 3A',
             contact: {
                 name: 'Suporte',
                 email: 'suporte@clinica.com'

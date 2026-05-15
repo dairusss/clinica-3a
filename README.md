@@ -1,4 +1,4 @@
-# Clinica 3A - Gerenciador de Fila
+# Clínica 3A - Gerenciador de Fila
 
 Sistema backend para gerenciar fila de atendimento em clínicas, seguindo o fluxo:
 1. Paciente chega na clínica

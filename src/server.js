@@ -56,7 +56,7 @@ app.use('/api/recepcao', recepcaoRoutes);
 // Rota raiz
 app.get('/', (req, res) => {
     res.json({
-        message: 'Clinica 3A - API',
+        message: 'Clínica 3A - API',
         version: '1.0.0',
         interfaces: {
             totem: 'http://localhost:3000/totem - Interface para emitir senhas',
@@ -89,7 +89,7 @@ testConnection().then(() => {
     app.listen(PORT, () => {
         console.log(`\n${'═'.repeat(70)}`);
         console.log(`${'█'.repeat(70)}`);
-        console.log(`${'█'}${'  '.repeat(20)}🏥 CLINICA 3A - SISTEMA DE FILA${'  '.repeat(10)}█`);
+        console.log(`${'█'}${'  '.repeat(20)}🏥 CLÍNICA 3A - SISTEMA DE FILA${'  '.repeat(10)}█`);
         console.log(`${'█'.repeat(70)}`);
         console.log(`${'═'.repeat(70)}\n`);
         
