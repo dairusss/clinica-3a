@@ -1,0 +1,366 @@
+# ================================================
+# DIAGRAMA DE FLUXO - SISTEMA DE CLÍNICA
+# ================================================
+
+## 1. FLUXO DE ATENDIMENTO
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  FLUXO DE ATENDIMENTO                       │
+└─────────────────────────────────────────────────────────────┘
+
+     ┌──────────────┐
+     │ Paciente     │
+     │ chega na     │
+     │ clínica      │
+     └──────┬───────┘
+            │
+            ▼
+     ┌──────────────┐
+     │ Toca totem   │
+     │ ou escaneia  │
+     │ QR Code      │
+     └──────┬───────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ POST /pacientes/emitir-senha     │
+     │ Retorna: numero_senha = "0047"   │
+     │ Status: EMITIDA                  │
+     └──────┬───────────────────────────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ Paciente aguarda na sala         │
+     │ GET /pacientes/status/0047       │
+     │ Mostra: "Você é o 3º da fila"   │
+     │ Acompanha pelo celular/TV        │
+     └──────┬───────────────────────────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ Recepcionista vê fila            │
+     │ GET /pacientes/fila              │
+     │ Lista de todos na fila           │
+     └──────┬───────────────────────────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ POST /recepcao/chamar-proximo    │
+     │ Status muda para: CHAMADA        │
+     │ Painel exibe: "SENHA 0047"       │
+     │ Som toca (opcional)              │
+     └──────┬───────────────────────────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ Paciente vai para recepção       │
+     └──────┬───────────────────────────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ POST /recepcao/iniciar/0047      │
+     │ Status muda para: EM_ATENDIMENTO │
+     │ Início do atendimento registrado │
+     └──────┬───────────────────────────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ Recepcionista atende paciente    │
+     │ (preenchimento de fichas, etc)   │
+     └──────┬───────────────────────────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ POST /recepcao/finalizar/0047    │
+     │ Status muda para: ATENDIDO       │
+     │ Fim do atendimento registrado    │
+     └──────┬───────────────────────────┘
+            │
+            ▼
+     ┌──────────────────────────────────┐
+     │ Sistema chama próximo paciente   │
+     │ Volta para etapa de chamada      │
+     └──────────────────────────────────┘
+```
+
+---
+
+## 2. ARQUITETURA DO SISTEMA
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                  ARQUITETURA COMPLETA                    │
+└──────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────┐
+│         CLIENTES/FRONTEND               │
+├─────────────────────────────────────────┤
+│  • Totem (Emitir Senha)                 │
+│  • Painel TV (Mostrar Fila)             │
+│  • Celular (Acompanhar Status)          │
+│  • Recepção (Chamar/Atender)            │
+└──────────────┬──────────────────────────┘
+               │ HTTP/REST
+               ▼
+┌──────────────────────────────────────────────────────────┐
+│         BACKEND - NODE.JS / EXPRESS                      │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │ API ROUTES                                         │ │
+│  ├────────────────────────────────────────────────────┤ │
+│  │ • /api/pacientes/emitir-senha                      │ │
+│  │ • /api/pacientes/status/:numeroSenha               │ │
+│  │ • /api/pacientes/fila                              │ │
+│  │ • /api/pacientes/proximo                           │ │
+│  │ • /api/recepcao/chamar-proximo                     │ │
+│  │ • /api/recepcao/chamar/:numeroSenha                │ │
+│  │ • /api/recepcao/iniciar/:numeroSenha               │ │
+│  │ • /api/recepcao/finalizar/:numeroSenha             │ │
+│  │ • /api/recepcao/historico                          │ │
+│  │ • /api/recepcao/estatisticas                       │ │
+│  └────────────────────────────────────────────────────┘ │
+│                    │                                    │
+│                    ▼                                    │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │ CONTROLLERS                                        │ │
+│  ├────────────────────────────────────────────────────┤ │
+│  │ • pacienteController.js                            │ │
+│  │ • recepcaoController.js                            │ │
+│  └────────────────────────────────────────────────────┘ │
+│                    │                                    │
+│                    ▼                                    │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │ MODELS                                             │ │
+│  ├────────────────────────────────────────────────────┤ │
+│  │ • pacienteModel.js                                 │ │
+│  │ • recepcaoModel.js                                 │ │
+│  └────────────────────────────────────────────────────┘ │
+│                    │                                    │
+│                    ▼                                    │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │ CONFIG                                             │ │
+│  ├────────────────────────────────────────────────────┤ │
+│  │ • database.js (Conexão PostgreSQL)                 │ │
+│  └────────────────────────────────────────────────────┘ │
+│                                                          │
+└──────────────────────┬───────────────────────────────────┘
+                       │ TCP/IP Conexão
+                       ▼
+┌──────────────────────────────────────────────────────────┐
+│     BANCO DE DADOS - PostgreSQL                          │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  TABELAS:                                                │
+│  • pacientes        (CPF, nome, telefone, etc)          │
+│  • senhas           (numero_senha, status, datas)       │
+│  • fila_atendimento (posicao_fila, prioridade)          │
+│  • chamadas         (historico de chamadas)             │
+│  • atendimentos     (detalhes do atendimento)           │
+│  • configuracoes    (settings do sistema)               │
+│                                                          │
+│  ÍNDICES:                                                │
+│  • pacientes.cpf                                         │
+│  • senhas.numero_senha                                   │
+│  • senhas.status                                         │
+│  • fila_atendimento.posicao_fila                        │
+│                                                          │
+│  VIEWS:                                                  │
+│  • fila_atual (fila em tempo real)                      │
+│  • pacientes_em_atendimento (em atendimento agora)      │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. FLUXO DE DADOS
+
+```
+┌──────────────────────────────────────────────┐
+│        REQUISIÇÃO DE EMITIR SENHA            │
+└──────────────────────────────────────────────┘
+
+Cliente
+  │
+  ├─ POST /api/pacientes/emitir-senha
+  │  │ {
+  │  │   "nome": "João Silva",
+  │  │   "cpf": "12345678901",
+  │  │   "telefone": "11987654321"
+  │  │ }
+  │
+  ▼
+Express (Routes)
+  pacientes.js
+  │
+  ▼
+Controller
+  pacienteController.emitirSenha()
+  │
+  ▼
+Model
+  pacienteModel.emitirSenha()
+  │
+  ├─ Verifica se paciente já existe (por CPF)
+  ├─ Se não existir, cria novo paciente
+  ├─ Gera número de senha aleatório
+  ├─ Insere registro de senha
+  ├─ Insere na fila_atendimento
+  │
+  ▼
+PostgreSQL
+  INSERT INTO pacientes (...)
+  INSERT INTO senhas (...)
+  INSERT INTO fila_atendimento (...)
+  │
+  ▼
+Response
+  {
+    "success": true,
+    "data": {
+      "id": 1,
+      "numero_senha": "0047",
+      "posicao_fila": 3,
+      "status": "EMITIDA"
+    }
+  }
+```
+
+---
+
+## 4. ESTRUTURA DE PASTAS
+
+```
+Clinica/
+├── database/
+│   ├── schema.sql              ← Tabelas e índices
+│   └── [backups...]
+│
+├── src/
+│   ├── config/
+│   │   └── database.js         ← Conexão DB
+│   │
+│   ├── controllers/
+│   │   ├── pacienteController.js
+│   │   └── recepcaoController.js
+│   │
+│   ├── models/
+│   │   ├── pacienteModel.js
+│   │   └── recepcaoModel.js
+│   │
+│   ├── routes/
+│   │   ├── pacientes.js        ← GET/POST pacientes
+│   │   └── recepcao.js         ← GET/POST recepção
+│   │
+│   └── server.js               ← Servidor Express
+│
+├── scripts/
+│   └── initDb.js               ← Inicializar DB
+│
+├── node_modules/               ← Dependências
+├── package.json                ← Dependências do projeto
+├── .env                        ← Variáveis de ambiente
+├── .gitignore                  ← Ignorar arquivos
+│
+├── README.md                   ← Documentação completa
+├── QUICKSTART.md               ← Guia rápido
+├── EXEMPLOS_API.js             ← Exemplos de uso
+├── SQL_COMPLETO.sql            ← SQL completo
+├── FOLHA_DE_COLA_SQL.sql       ← Queries úteis
+├── SETUP_POSTGRES.sql          ← Guia PostgreSQL
+│
+└── RESUMO.txt                  ← Este arquivo
+
+```
+
+---
+
+## 5. CICLO DE VIDA DA SENHA
+
+```
+CRIAÇÃO
+  └─> POST /emitir-senha
+      └─> status: "EMITIDA"
+          posicao_fila: 3
+
+CHAMADA
+  └─> POST /chamar-proximo
+      └─> status: "CHAMADA"
+          chamada_em: timestamp
+          data_chamada registrada
+
+RESPOSTA
+  └─> Paciente vai para recepção
+
+ATENDIMENTO
+  └─> POST /iniciar
+      └─> status: "EM_ATENDIMENTO"
+          atendimento_iniciado_em: timestamp
+
+FINALIZAÇÃO
+  └─> POST /finalizar
+      └─> status: "ATENDIDO"
+          atendimento_finalizado_em: timestamp
+
+HISTÓRICO
+  └─> GET /historico
+      └─> Senha aparece no histórico
+```
+
+---
+
+## 6. SEQUÊNCIA DE CHAMADAS TÍPICA
+
+```
+1º PACIENTE
+  Emite senha ──> 0001 (EMITIDA)
+  Aguarda ──> Aparece na fila
+  É chamado ──> 0001 (CHAMADA)
+  Vai à recepção ──> Inicia atendimento (EM_ATENDIMENTO)
+  É atendido ──> Finaliza (ATENDIDO)
+  
+2º PACIENTE
+  Emite senha ──> 0002 (EMITIDA)
+  Aguarda ──> Aparece na fila (agora é 1º)
+  É chamado ──> 0002 (CHAMADA)
+  Vai à recepção ──> Inicia atendimento (EM_ATENDIMENTO)
+  É atendido ──> Finaliza (ATENDIDO)
+
+(E assim continua...)
+```
+
+---
+
+## 7. FLUXO DE PRIORIDADES
+
+```
+NORMAL = 0
+IDOSO = 1
+GESTANTE = 2
+
+Fila ordenada por:
+  1º - Maior prioridade (gestante)
+  2º - Prioridade média (idoso)
+  3º - Ordem de chegada (normal)
+
+Exemplo:
+  Posição 1: Senha 0005 (Gestante, prioridade 2)
+  Posição 2: Senha 0003 (Idoso, prioridade 1)
+  Posição 3: Senha 0001 (Normal, prioridade 0)
+  Posição 4: Senha 0002 (Normal, prioridade 0)
+```
+
+---
+
+## 8. DADOS ESTATÍSTICOS
+
+```
+GET /estatisticas
+  ├─ total_senhas: 45
+  ├─ atendidos: 38
+  ├─ em_atendimento: 2
+  ├─ na_fila: 5
+  └─ tempo_medio_atendimento: 12.5 (minutos)
+```

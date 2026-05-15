@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acompanhe sua Fila - Clinica 3A</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.5.3/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-image: url("assets/logo-bg.svg"), linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-repeat: no-repeat, no-repeat;
+            background-position: center 18%, center;
+            background-size: 45% auto, cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.99);
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(102, 126, 234, 0.1);
+            overflow: hidden;
+            animation: slideInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .header img.logo {
+            width: 140px;
+            max-width: 100%;
+            height: auto;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+        
+        .header img.logo:hover {
+            transform: scale(1.08);
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 0.95em;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 25px;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e8f5ff 100%);
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .status-card h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+
+        .status-info {
+            font-size: 0.98em;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .status-info strong {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        .senha-display {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 35px 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .senha-display p {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .senha-numero {
+            font-size: 3.5em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+
+        .fila-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            color: #856404;
+        }
+
+        .fila-info strong {
+            color: #333;
+        }
+
+        .status-container {
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+
+        .status-item.ativo {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .status-item.chamada {
+            background: #ffeaa7;
+            border-color: #fdcb6e;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .status-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .status-text {
+            flex: 1;
+        }
+
+        .status-text p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .status-text p strong {
+            color: #333;
+            display: block;
+            font-size: 1.1em;
+        }
+
+        .refresh-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.05em;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 10px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .refresh-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s ease, height 0.5s ease;
+        }
+
+        .refresh-btn:hover::after {
+            width: 260px;
+            height: 260px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.35);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .info-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .info-section strong {
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .error strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .posicao-fila {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .posicao-numero {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .tempo-estimado {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .tempo-estimado strong {
+            color: #333;
+        }
+
+        .notificacao-badge {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .qr-final {
+            text-align: center;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .qr-final.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.2em;
+            }
+
+            .header {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+                text-align: center;
+            }
+
+            .header img.logo {
+                width: 140px;
+                max-width: 100%;
+                height: auto;
+                border-radius: 18px;
+                background: rgba(255,255,255,0.12);
+                padding: 10px;
+            }
+
+            .senha-numero {
+                font-size: 2.8em;
+            }
+
+            .posicao-numero {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img class="logo" src="assets/logo.svg" alt="Diagnóstico Clínica Médica" />
+            <h1>🏥 Acompanhe sua Fila</h1>
+            <p>Sistema da Clinica 3A</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Exibição de erro -->
+            <div id="error-container" style="display: none;" class="error">
+                <strong id="error-title">Erro</strong>
+                <span id="error-message"></span>
+            </div>
+
+            <!-- Sua Senha -->
+            <div id="senha-section" style="display: none;">
+                <div class="senha-display">
+                    <p>SUA SENHA</p>
+                    <div class="senha-numero" id="sua-senha">-</div>
+                    <p id="status-grande">Aguardando...</p>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="mudarTab(0)">📊 Meu Status</button>
+                <button class="tab-btn" onclick="mudarTab(1)">👥 Fila Completa</button>
+            </div>
+
+            <!-- Tab 1: Meu Status -->
+            <div id="tab-0" class="tab-content active">
+                <div id="meu-status-container">
+                    <!-- Carregando -->
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 15px; color: #666;">Carregando informações...</p>
+                    </div>
+                </div>
+
+                <button id="btn-refresh-status" class="refresh-btn" style="display: none;" onclick="atualizarStatus()">
+                    🔄 Atualizar
+                </button>
+            </div>
+
+            <!-- Tab 2: Fila Completa -->
+            <div id="tab-1" class="tab-content">
+                <div id="fila-container">
+                    <!-- Carregando -->
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 15px; color: #666;">Carregando fila...</p>
+                    </div>
+                </div>
+
+                <button id="btn-refresh-fila" class="refresh-btn" style="display: none;" onclick="atualizarFila()">
+                    🔄 Atualizar
+                </button>
+            </div>
+
+            <!-- Info -->
+            <div class="info-section" style="margin-top: 20px;">
+                <strong>ℹ️ Como funciona:</strong><br>
+                Acompanhe sua posição na fila em tempo real. Quando seu número for chamado, você verá uma notificação.
+                Atualize regularmente para não perder sua vez!
+            </div>
+
+            <!-- QR Code final -->
+            <div class="qr-final" id="qr-final" style="margin-top: 20px;">
+                <p><strong>QR Code da sua senha:</strong></p>
+                <div id="qrcode-final" style="margin: 15px 0;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let senhaAtual = null;
+        let tabAtivo = 0;
+        let atualizacaoAutomatica;
+
+        // Inicializar
+        window.addEventListener('load', function() {
+            // Verificar se tem senha na URL
+            const params = new URLSearchParams(window.location.search);
+            senhaAtual = params.get('senha');
+
+            if (!senhaAtual) {
+                mostrarErro('Senha não encontrada', 'Escaneie o QR Code ou insira sua senha manualmente.');
+                mostrarFormularioManual();
+            } else {
+                document.getElementById('sua-senha').textContent = String(senhaAtual).padStart(4, '0');
+                atualizarStatus();
+                iniciarAtualizacaoAutomatica();
+            }
+        });
+
+        function mostrarErro(titulo, mensagem) {
+            const container = document.getElementById('error-container');
+            document.getElementById('error-title').textContent = titulo;
+            document.getElementById('error-message').textContent = mensagem;
+            container.style.display = 'block';
+        }
+
+        function ocultarErro() {
+            document.getElementById('error-container').style.display = 'none';
+        }
+
+        function mudarTab(tab) {
+            tabAtivo = tab;
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx === tab);
+            });
+            document.querySelectorAll('.tab-content').forEach((content, idx) => {
+                content.classList.toggle('active', idx === tab);
+            });
+
+            if (tab === 0) {
+                atualizarStatus();
+            } else {
+                atualizarFila();
+            }
+        }
+
+        async function atualizarStatus() {
+            if (!senhaAtual) return;
+
+            const container = document.getElementById('meu-status-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top: 15px; color: #666;">Atualizando...</p></div>';
+
+            try {
+                const response = await fetch(`/api/pacientes/status/${senhaAtual}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Erro ao buscar status');
+                }
+
+                const statusData = data.data || data;
+                ocultarErro();
+                document.getElementById('senha-section').style.display = 'block';
+                exibirStatus(statusData);
+                document.getElementById('btn-refresh-status').style.display = 'block';
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error">
+                        <strong>Erro ao carregegar</strong>
+                        ${error.message}
+                    </div>
+                `;
+                document.getElementById('btn-refresh-status').style.display = 'block';
+            }
+        }
+
+        function exibirStatus(data) {
+            const container = document.getElementById('meu-status-container');
+            const status = data.status || 'AGUARDANDO';
+            const statusTextos = {
+                'AGUARDANDO': { icon: '⏳', texto: 'Aguardando', cor: 'normal' },
+                'CHAMADA': { icon: '🔔', texto: 'VOCÊ FOI CHAMADO!', cor: 'chamada' },
+                'EM_ATENDIMENTO': { icon: '👨‍⚕️', texto: 'Em atendimento', cor: 'ativo' },
+                'ATENDIDO': { icon: '✅', texto: 'Atendido', cor: 'ativo' },
+                'NAO_COMPARECEU': { icon: '❌', texto: 'Não compareceu', cor: 'normal' }
+            };
+
+            const info = statusTextos[status] || { icon: '❓', texto: status, cor: 'normal' };
+
+            let html = `
+                <div class="posicao-fila">
+                    <p>Sua Posição na Fila</p>
+                    <div class="posicao-numero">${data.posicaoFila || '-'}</div>
+                    <p style="font-size: 0.9em; opacity: 0.9;">de ${data.totalFila || '-'} pacientes</p>
+                </div>
+            `;
+
+            if (data.tempoEstimado) {
+                html += `
+                    <div class="tempo-estimado">
+                        <strong>⏱️ Tempo estimado:</strong><br>
+                        Aproximadamente ${data.tempoEstimado} minutos
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="status-item ${info.cor}">
+                    <div class="status-icon">${info.icon}</div>
+                    <div class="status-text">
+                        <p><strong>${info.texto}</strong></p>
+                        <p>Senha: ${data.numeroSenha}</p>
+                        <p>Atualizado há poucos segundos</p>
+                    </div>
+                </div>
+            `;
+
+            if (data.horaEmissao) {
+                html += `
+                    <div class="status-card">
+                        <h3>Informações</h3>
+                        <div class="status-info">
+                            <p><strong>Emissão:</strong> ${new Date(data.horaEmissao).toLocaleTimeString('pt-BR')}</p>
+                            <p><strong>Nome:</strong> ${data.nome}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            // Reproduzir som se foi chamado
+            if (status === 'CHAMADA') {
+                tocarSom();
+                document.title = '🔔 SUA VEZ! - Clinica 3A';
+            }
+        }
+
+        async function atualizarFila() {
+            const container = document.getElementById('fila-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top: 15px; color: #666;">Carregando fila...</p></div>';
+
+            try {
+                const response = await fetch('/api/pacientes/fila');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Erro ao buscar fila');
+                }
+
+                const filaData = data.data || data;
+                ocultarErro();
+                exibirFila(filaData);
+                document.getElementById('btn-refresh-fila').style.display = 'block';
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error">
+                        <strong>Erro ao carregar</strong>
+                        ${error.message}
+                    </div>
+                `;
+                document.getElementById('btn-refresh-fila').style.display = 'block';
+            }
+        }
+
+        function exibirFila(data) {
+            const container = document.getElementById('fila-container');
+            let html = '';
+
+            if (!data || data.length === 0) {
+                html = '<div class="fila-info"><strong>✅ Nenhum paciente na fila</strong></div>';
+            } else {
+                html += `
+                    <div class="fila-info">
+                        <strong>📊 Total na fila:</strong> ${data.length} paciente${data.length !== 1 ? 's' : ''}
+                    </div>
+                `;
+
+                data.forEach((paciente, idx) => {
+                    const isCurrent = paciente.numeroSenha === parseInt(senhaAtual);
+                    const statusInfo = {
+                        'AGUARDANDO': '⏳',
+                        'CHAMADA': '🔔',
+                        'EM_ATENDIMENTO': '👨‍⚕️',
+                        'ATENDIDO': '✅',
+                        'NAO_COMPARECEU': '❌'
+                    };
+
+                    html += `
+                        <div class="status-item ${isCurrent ? 'ativo' : ''} ${paciente.status === 'CHAMADA' ? 'chamada' : ''}">
+                            <div class="status-icon">${statusInfo[paciente.status] || '•'}</div>
+                            <div class="status-text">
+                                <p><strong>${paciente.nome || `Senha ${paciente.numeroSenha}`}</strong></p>
+                                <p>Senha: ${String(paciente.numeroSenha).padStart(4, '0')} ${isCurrent ? '<span class="notificacao-badge">VOCÊ</span>' : ''}</p>
+                                <p style="font-size: 0.85em;">Status: ${paciente.status}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        function iniciarAtualizacaoAutomatica() {
+            // Atualizar a cada 3 segundos
+            atualizacaoAutomatica = setInterval(() => {
+                if (tabAtivo === 0) {
+                    atualizarStatus();
+                } else {
+                    atualizarFila();
+                }
+            }, 3000);
+        }
+
+        function tocarSom() {
+            // Usar Web Audio API para criar um bip
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log('Não foi possível tocar som');
+            }
+        }
+
+        function mostrarFormularioManual() {
+            const container = document.getElementById('meu-status-container');
+            container.innerHTML = `
+                <div class="status-card">
+                    <h3>Digite sua Senha</h3>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <input type="text" id="entrada-senha" placeholder="Número da senha" style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                        <button onclick="buscarPelaSenha()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">Buscar</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buscarPelaSenha() {
+            const entrada = document.getElementById('entrada-senha').value.trim();
+            if (entrada) {
+                senhaAtual = entrada;
+                window.location.search = '?senha=' + entrada;
+            }
+        }
+    </script>
+</body>
+</html>
