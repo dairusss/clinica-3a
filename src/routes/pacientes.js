@@ -31,7 +31,7 @@
  *                 type: string
  *               prioridade:
  *                 type: integer
- *                 description: 0=normal, 1=idoso, 2=gestante, 3=deficiente
+ *                 description: 0=normal, 1=idoso, 2=gestante, 3=atendimento especial
  *             required:
  *               - nome
  *               - cpf
