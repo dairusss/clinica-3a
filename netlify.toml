@@ -9,7 +9,7 @@
 # Redirecionar TUDO para função api (Express server)
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api:path"
+  to = "/.netlify/functions/api/:splat"
   status = 200
 
 # Servir arquivos estáticos (HTML)
