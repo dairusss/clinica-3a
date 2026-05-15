@@ -82,45 +82,47 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Iniciar servidor
-const PORT = process.env.PORT || 3000;
+// Iniciar servidor local somente se o arquivo for executado diretamente
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
 
-testConnection().then(() => {
-    app.listen(PORT, () => {
-        console.log(`\n${'═'.repeat(70)}`);
-        console.log(`${'█'.repeat(70)}`);
-        console.log(`${'█'}${'  '.repeat(20)}🏥 CLÍNICA 3A - SISTEMA DE FILA${'  '.repeat(10)}█`);
-        console.log(`${'█'.repeat(70)}`);
-        console.log(`${'═'.repeat(70)}\n`);
-        
-        console.log(`✓ Servidor rodando na porta ${PORT}\n`);
-        
-        console.log('📱 INTERFACES DISPONÍVEIS:\n');
-        console.log(`   1️⃣  Totem (Emitir Senhas)`);
-        console.log(`       🔗 http://localhost:${PORT}/totem\n`);
-        
-        console.log(`   2️⃣  Cliente Mobile (Acompanhar Fila)`);
-        console.log(`       🔗 http://localhost:${PORT}/cliente-mobile\n`);
-        
-        console.log(`   3️⃣  Painel Eletrônico (TV)`);
-        console.log(`       🔗 http://localhost:${PORT}/painel\n`);
-        
-        console.log(`   4️⃣  Painel Médico/Recepção`);
-        console.log(`       🔗 http://localhost:${PORT}/medico\n`);
-        
-        console.log(`   5️⃣  Dashboard Principal`);
-        console.log(`       🔗 http://localhost:${PORT}\n`);
-        
-        console.log(`   📚 Documentação API (Swagger)`);
-        console.log(`       🔗 http://localhost:${PORT}/docs\n`);
-        
-        console.log(`${'═'.repeat(70)}\n`);
-        console.log(`✅ Sistema pronto para uso! Abra uma das URLs acima no navegador.\n`);
-        console.log(`${'═'.repeat(70)}\n`);
+    testConnection().then(() => {
+        app.listen(PORT, () => {
+            console.log(`\n${'═'.repeat(70)}`);
+            console.log(`${'█'.repeat(70)}`);
+            console.log(`${'█'}${'  '.repeat(20)}🏥 CLÍNICA 3A - SISTEMA DE FILA${'  '.repeat(10)}█`);
+            console.log(`${'█'.repeat(70)}`);
+            console.log(`${'═'.repeat(70)}\n`);
+            
+            console.log(`✓ Servidor rodando na porta ${PORT}\n`);
+            
+            console.log('📱 INTERFACES DISPONÍVEIS:\n');
+            console.log(`   1️⃣  Totem (Emitir Senhas)`);
+            console.log(`       🔗 http://localhost:${PORT}/totem\n`);
+            
+            console.log(`   2️⃣  Cliente Mobile (Acompanhar Fila)`);
+            console.log(`       🔗 http://localhost:${PORT}/cliente-mobile\n`);
+            
+            console.log(`   3️⃣  Painel Eletrônico (TV)`);
+            console.log(`       🔗 http://localhost:${PORT}/painel\n`);
+            
+            console.log(`   4️⃣  Painel Médico/Recepção`);
+            console.log(`       🔗 http://localhost:${PORT}/medico\n`);
+            
+            console.log(`   5️⃣  Dashboard Principal`);
+            console.log(`       🔗 http://localhost:${PORT}\n`);
+            
+            console.log(`   📚 Documentação API (Swagger)`);
+            console.log(`       🔗 http://localhost:${PORT}/docs\n`);
+            
+            console.log(`${'═'.repeat(70)}\n`);
+            console.log(`✅ Sistema pronto para uso! Abra uma das URLs acima no navegador.\n`);
+            console.log(`${'═'.repeat(70)}\n`);
+        });
+    }).catch(err => {
+        console.error('❌ Falha ao conectar ao banco de dados:', err);
+        process.exit(1);
     });
-}).catch(err => {
-    console.error('❌ Falha ao conectar ao banco de dados:', err);
-    process.exit(1);
-});
+}
 
 module.exports = app;
