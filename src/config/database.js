@@ -10,7 +10,8 @@ const poolConfig = process.env.DATABASE_URL ? {
     port: process.env.DB_PORT || 5432,
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME || 'clinica'
+    database: process.env.DB_NAME || 'clinica',
+    ssl: false
 };
 
 const pool = new Pool(poolConfig);
