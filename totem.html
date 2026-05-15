@@ -566,10 +566,11 @@
                 });
 
                 let data;
+                const clonedResponse = response.clone();
                 try {
                     data = await response.json();
                 } catch (parseError) {
-                    const text = await response.text();
+                    const text = await clonedResponse.text();
                     throw new Error('Resposta inválida do servidor: ' + text.slice(0, 200));
                 }
 
